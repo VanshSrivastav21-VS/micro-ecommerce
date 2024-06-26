@@ -1,24 +1,12 @@
 import pathlib
-import stripe
-
-
 from django.db import models
+from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from django.utils import timezone
 from django.urls import reverse
-from cfehome.storages.backends import ProtectedFileStorage
-from cfehome.env import config
-
-STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY", default=None)
-stripe.api_key = STRIPE_SECRET_KEY
-
 
 PROTECTED_MEDIA_ROOT = settings.PROTECTED_MEDIA_ROOT
-protected_storage = (
-    ProtectedFileStorage()
-)  # FileSystemStorage(location=str(PROTECTED_MEDIA_ROOT))
-
-
+protected_storage =  FileSystemStorage(location=str(PROTECTED_MEDIA_ROOT))
 # Create your models here.
 class Product(models.Model):
     user = models.ForeignKey(
@@ -38,64 +26,31 @@ class Product(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
-    @property
-    def display_name(self):
-        return self.name
-
-    @property
-    def display_price(self):
-        return self.price
-
-    def __str__(self):
-        return self.display_name
-
     def save(self, *args, **kwargs):
-        if self.name:
-            stripe_product_r = stripe.Product.create(name=self.name)
-            self.stripe_product_id = stripe_product_r.id
-        if not self.stripe_price_id:
-            stripe_price_obj = stripe.Price.create(
-                product=self.stripe_product_id,
-                unit_amount=self.stripe_price,
-                currency="usd",
-            )
-            self.stripe_price_id = stripe_price_obj.id
         if self.price != self.og_price:
             # price changed
             self.og_price = self.price
-            # trigger an API request for the price
-            self.stripe_price = int(self.price * 100)
-            if self.stripe_product_id:
-                stripe_price_obj = stripe.Price.create(
-                    product=self.stripe_product_id,
-                    unit_amount=self.stripe_price,
-                    currency="usd",
-                )
-                self.stripe_price_id = stripe_price_obj.id
+            #trigger on API request for the price
+            self.stripe_price = int(self.price *100)
             self.price_changed_timestamp = timezone.now()
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
         return reverse("products:detail", kwargs={"handle": self.handle})
-
-    def get_manage_url(self):
-        return reverse("products:manage", kwargs={"handle": self.handle})
-
-
+    
 def handle_product_attachment_upload(instance, filename):
     return f"products/{instance.product.handle}/attachments/{filename}"
-
-
+    
 class ProductAttachment(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    file = models.FileField(
-        upload_to=handle_product_attachment_upload, storage=protected_storage
-    )
+    file = models.FileField(upload_to=handle_product_attachment_upload, 
+    storage=protected_storage)
     name = models.CharField(max_length=120, null=True, blank=True)
     is_free = models.BooleanField(default=False)
     active = models.BooleanField(default=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+
 
     def save(self, *args, **kwargs):
         if not self.name:
@@ -105,10 +60,9 @@ class ProductAttachment(models.Model):
     @property
     def display_name(self):
         return self.name or pathlib.Path(self.file.name).name
-
+    
     def get_download_url(self):
-        url_kwargs = {
-            "handle": self.product.handle,
-            "pk": self.pk,
-        }
-        return reverse("products:download", kwargs=url_kwargs)
+        return reverse("products:download", kwargs={"handle": self.product.handle, "pk":self.pk})
+
+
+

@@ -23,10 +23,8 @@ from . import views
 
 urlpatterns = [
     path("", views.home_view),
-    path("login/", RedirectView.as_view(url="/admin/")),
     path("admin/", admin.site.urls),
     path("products/", include("products.urls")),
-    path("purchases/", include("purchases.urls")),
 ]
 
 if settings.DEBUG:

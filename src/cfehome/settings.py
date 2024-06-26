@@ -41,9 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #internal
     'products',
-    'purchases',
 ]
 
 MIDDLEWARE = [
@@ -131,7 +129,6 @@ STATIC_ROOT = BASE_DIR.parent / "local-cdn" / "static"
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR.parent / "local-cdn" / "media"
 PROTECTED_MEDIA_ROOT = BASE_DIR.parent / "local-cdn" / "protected"
-from cfehome.storages.conf import * # noqa
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
