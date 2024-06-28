@@ -37,8 +37,7 @@ def product_manage_detail_view(request, handle=None):
         return HttpResponseBadRequest()
     form = ProductUpdateForm(request.POST or None, request.FILES or None, instance=obj)
     formset = ProductAttachmentInlineFormSet(request.POST or None, 
-                                             request.FILES or None,
-                                             queryset=attachments)
+                                             request.FILES or None,queryset=attachments)
     if form.is_valid() and formset.is_valid():
         instance = form.save(commit=False)
         instance.save()
@@ -61,6 +60,7 @@ def product_manage_detail_view(request, handle=None):
     context['form'] = form
     context['formset'] = formset
     return render(request, 'products/manager.html', context)
+
 
 def product_detail_view(request, handle=None):
     obj = get_object_or_404(Product, handle=handle)
