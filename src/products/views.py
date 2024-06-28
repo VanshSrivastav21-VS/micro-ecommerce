@@ -1,6 +1,6 @@
 import mimetypes
 
-from django.http import HttpResponseRedirect, HttpResponseBadRequest
+from django.http import FileResponse, HttpResponseBadRequest
 from django.shortcuts import render, redirect, get_object_or_404
 # Create your views here.
 from .forms import ProductForm, ProductUpdateForm, ProductAttachmentInlineFormSet
@@ -64,12 +64,20 @@ def product_manage_detail_view(request, handle=None):
 
 def product_detail_view(request, handle=None):
     obj = get_object_or_404(Product, handle=handle)
-    attachments = ProductAttachment.objects.filter(product=obj)
-    # attachments = obj.productattachment_set.all()
-    is_owner = False
+    attachment = ProductAttachment.objects.filter(product=obj)
+    # attachment = obj.productattachment_set.all()
+    is_owner =False
     if request.user.is_authenticated:
-        is_owner = request.user.purchase_set.all().filter(product=obj, completed=True).exists()
-    context = {"object": obj, "is_owner": is_owner, "attachments": attachments}
+        is_owner = obj.user == request.user # verify ownership  
+    context = {"object": obj}
+    if is_owner:
+        form = ProductUpdateForm(request.POST or None, request.FILES or None,
+        instance=obj)
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.save()
+            # return redirect('/products/create')
+        context['form'] = form
     return render(request, 'products/detail.html', context)
 
 def product_attachment_download_view(request, handle=None, pk=None):

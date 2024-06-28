@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 
-
 {% block content %}
 
 <section class="bg-white dark:bg-gray-900">
@@ -13,7 +12,6 @@
             {% for object in object_list %}
                 {% include 'products/list-card.html' with object=object %} 
             {% endfor %}
-           
         </div>  
     </div>
   </section>
