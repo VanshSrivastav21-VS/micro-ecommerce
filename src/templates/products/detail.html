@@ -27,14 +27,15 @@
         {% if is_owner %}
         <p>You own this product.</p>
         {% else %}
-       
+       <div>
+        {% include 'purchases/buy-btn-form.html' with product=object %}
+       </div>
         {% endif %}
         {% if object.image %}
             <div class="grid gap-4 ">
                 <div>
                     <img class="h-auto max-w-full rounded-lg" src="{{ object.image.url }}" alt="">
-                </div>
-            
+                </div>      
             </div>
         {% endif %}
 

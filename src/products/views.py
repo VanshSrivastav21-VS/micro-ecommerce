@@ -64,12 +64,12 @@ def product_manage_detail_view(request, handle=None):
 
 def product_detail_view(request, handle=None):
     obj = get_object_or_404(Product, handle=handle)
-    attachment = ProductAttachment.objects.filter(product=obj)
+    attachments = ProductAttachment.objects.filter(product=obj)
     # attachment = obj.productattachment_set.all()
     is_owner =False
     if request.user.is_authenticated:
         is_owner = obj.user == request.user # verify ownership  
-    context = {"object": obj}
+    context = {"object": obj, "attachments":attachments, "is_owner":is_owner}
     if is_owner:
         form = ProductUpdateForm(request.POST or None, request.FILES or None,
         instance=obj)

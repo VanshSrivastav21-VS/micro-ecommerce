@@ -26,6 +26,17 @@ class Product(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    @property
+    def display_name(self):
+        return self.name
+    
+    @property
+    def display_price(self):
+        return self.price
+
+    def __str__(self):
+        return self.display_name
+
     def save(self, *args, **kwargs):
         if self.price != self.og_price:
             # price changed
@@ -60,9 +71,7 @@ class ProductAttachment(models.Model):
             self.name = pathlib.Path(self.file.name).name  # stem, suffix
         super().save(*args, **kwargs)
 
-    @property
-    def display_name(self):
-        return self.name or pathlib.Path(self.file.name).name
+ 
     
     def get_download_url(self):
         return reverse("products:download", kwargs={"handle": self.product.handle, "pk":self.pk})
