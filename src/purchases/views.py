@@ -1,4 +1,5 @@
-from django.http import HttpResponse, HttpResponseBadRequest
+import random
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 
 from products.models import Product
 from .models import Purchase
@@ -13,7 +14,12 @@ def purchase_start_view(request):
     obj = Product.objects.get(handle=handle)
     purchase = Purchase.objects.create(user=request.user, product=obj)
     request.session['purchase_id'] = purchase.id
-    return HttpResponse("Started")
+    number = random.randint(0, 1)
+    # if number == 1:
+    #     return HttpResponseRedirect("/purchases/success")
+    # stripe api
+    return HttpResponseRedirect("/purchases/stopped")
+    # return HttpResponse("Started")
     
 
 def purchase_success_view(request):
