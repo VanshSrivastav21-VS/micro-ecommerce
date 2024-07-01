@@ -1,9 +1,13 @@
 import pathlib
+import stripe
+
 from django.db import models
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from django.utils import timezone
 from django.urls import reverse
+
+from cfehome.env import config 
 
 PROTECTED_MEDIA_ROOT = settings.PROTECTED_MEDIA_ROOT
 protected_storage =  FileSystemStorage(location=str(PROTECTED_MEDIA_ROOT))
@@ -38,11 +42,29 @@ class Product(models.Model):
         return self.display_name
 
     def save(self, *args, **kwargs):
+        if self.name:
+            stripe_product_r = stripe.Product.create(name=self.name)
+            print("stripe", stripe_product_r)
+            self.stripe_product_id = stripe_product_r.id 
+        if not self.stripe_price_id:
+            stripe_price_obj = stripe.Price.create(
+                 product=self.stripe_product_id,
+                 unit_amount=self.stripe_price,
+                 currency="usd"
+            )
+            self.stripe_price_id =  stripe_price_obj.id
         if self.price != self.og_price:
             # price changed
             self.og_price = self.price
             #trigger on API request for the price
             self.stripe_price = int(self.price *100)
+            if self.stripe_product_id:
+                stripe_price_obj = stripe.Price.create(
+                     product=self.stripe_product_id,
+                     unit_amount=self.stripe_price,
+                     currency="usd"
+                )
+                self.stripe_price_id =  stripe_price_obj.id
             self.price_changed_timestamp = timezone.now()
         super().save(*args, **kwargs)
 
